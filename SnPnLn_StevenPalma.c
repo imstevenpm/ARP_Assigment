@@ -1,4 +1,4 @@
-// 2019 ARP Assignment V1.0
+// 2019 ARP Assignment V2.0
 // Steven Palma Morera - S4882385
 // 2019 - 02 - 24
 
@@ -24,7 +24,7 @@
 #include <math.h>
 #include <arpa/inet.h>
 
-
+// Port number for the socket
 //#define PORT 8084
 
 #define _GNU_SOURCE
@@ -102,7 +102,7 @@ void sig_handler_sigusr2(int signo) {
 	FILE *f;
 	char c;
 
-	f = fopen("arp.log", "r");
+	f = fopen("Log_StevenPalma.log", "r");
 	if (f==NULL){
 		perror("fopen");
 	}
@@ -122,8 +122,6 @@ void sig_handler_sigusr2(int signo) {
 // Sn function > Declare signals
 int S_task (int child_PID_P){
 
-	//printf("(S): P process id = %d\n", child_PID_P);
-
 	// Create the signal handlers and perror
 	if (signal(SIGUSR1, sig_handler_sigusr1) == SIG_ERR){
 		perror("signal");
@@ -134,12 +132,15 @@ int S_task (int child_PID_P){
 		perror("signal");
 		return -1;
 	}
+
+	return 1;
 }
 
 // Ln function > Logs data
-// Takes as input the file descriptors of a unnammed pipe
+// Takes as input the file descriptors of an unnammed pipe
 int L_task(int fildes0, int fildes1){
 
+	// Print Ln PID
 	printf("(L): my process id= %d\n", (int) getpid());
 	fflush(stdout);
 
@@ -156,7 +157,7 @@ int L_task(int fildes0, int fildes1){
 	int retval;
 	FD_ZERO(&rfds);
 
-	// L is constantly waiting for a new message from the unammed pipe
+	// Ln is constantly waiting for a new message from the unammed pipe
 	while (1){
 
 		// Put the reading end of the unnammed pipe in the reading set
@@ -200,7 +201,7 @@ int L_task(int fildes0, int fildes1){
 			}
 
 			// Open the log file and print the message in it
-			f = fopen("arp.log", "a+");
+			f = fopen("Log_StevenPalma.log", "a+");
 			if (f==NULL){
 				perror("fopen");
 				return -1;
@@ -216,18 +217,16 @@ int L_task(int fildes0, int fildes1){
 }
 
 // Pn function > Reads and writes pipes, receives, computes and sends tokens
-// Takes as input the file descriptors of a unnammed pipe
+// Takes as input the file descriptors of an unnammed pipe
 int P_task(int child_PID_L, int fildes0, int fildes1){
-
-	//printf("(P): L process id= %d\n", child_PID_L);
 
 	// File descriptors for nammed pipes
 	int fd1;
 	int fd2;
 
+	// Variables for error handling and logic
 	int e;
 	int onoff=1;
-
 
 	// Creating nammed pipes
 	char *myfifo= "/tmp/mypipe";
@@ -270,20 +269,21 @@ int P_task(int child_PID_L, int fildes0, int fildes1){
 	unsigned int usecs=0;
 
 	// Open config file
+	// Directory must be changed!
 	fp = fopen("/home/imstevenpm/EMARO_1ST_SEMESTER/ARP/ASSIGMENT/arp2/Config_StevenPalma.config", "r");
 	if (fp==NULL){
 		 perror("open");
 		 return -1;
 	 }
 
-	 // Read first line (refv)
-	 if ((e=getline(&line,&len,fp))!=-1){
-			 refv=atof(line);
-	 }
-
-	 // Read second line (port2)
+	 // Read first line (port2)
 	 if ((e=getline(&line,&len,fp))!=-1){
 			 port2=atoi(line);
+	 }
+
+	 if ((e=getline(&line,&len,fp))!=-1){
+		 // Read second line (refv)
+			 refv=atof(line);
 	 }
 
 	 // Read third line (ipuser ADDRESS)
@@ -549,6 +549,7 @@ int P_task(int child_PID_L, int fildes0, int fildes1){
 					serv_addr.sin_port = htons(port2);
 
 					// Convert IPv4 and IPv6 addresses from text to binary form
+					// This can be configured for another ip cpu
 					// e=inet_pton(AF_INET, ipuser, &serv_addr.sin_addr);
 					e=inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr);
 					if(e<=0){
@@ -563,7 +564,6 @@ int P_task(int child_PID_L, int fildes0, int fildes1){
 					}
 
 					// Once they are connected
-
 
 					// Waits delay
 					printf("(P): Waiting the delay\n");
@@ -580,6 +580,9 @@ int P_task(int child_PID_L, int fildes0, int fildes1){
 					// Computes new token
 					// new token = received token + DT x (1. - (received token)^2/2) x 2 pi x refv
 					//Pn_token.token1=Pn_token.token1*10000000 + (Pn_token.arrival_time.tv_sec*1000000+Pn_token.arrival_time.tv_usec-Pn_token.time1*1000000)*(1-((Pn_token.token1*Pn_token.token1*1000000000000)/2))*2*M_PI*refv;
+					// Since the provided formula doesn't seem to work, a new formula is used
+					// New_token= Past_token + DT x refv
+					// Which represents the total distance traveled of a body moving at refv speed for DT microseconds
 					Pn_token.token1= ((Pn_token.token1 + (Pn_token.arrival_time.tv_sec*1000000+Pn_token.arrival_time.tv_usec-Pn_token.time1*1000000)*refv));
 
 					// Save new token and timestamp in the phrase variable with the same format as received
@@ -657,9 +660,7 @@ int P_task(int child_PID_L, int fildes0, int fildes1){
 			}
 		}
 	}
-
-
-
+	return 1;
 }
 
 // Main of the program
@@ -667,6 +668,7 @@ int main (int argc, char const *argv[]) {
 
 
 	int retval;
+
 	// PID for P
 	pid_t child_PID_P;
 	pid_t child_PID_G;
@@ -693,19 +695,27 @@ int main (int argc, char const *argv[]) {
 
 		// S process executes S function
 		else if (child_PID_G>0){
-			//printf("(S): G process id= %d\n", child_PID_G);
+
 			retval=S_task(child_PID_P);
 		}
 
 		// G executes
 		else{
+
 			printf("(G): my process id= %d\n", (int) getpid());
 			fflush(stdout);
+
+			// Using execvp system call
 			char *arg_G[3];
-			arg_G[0] = (char *)"./gn";
+			arg_G[0] = (char *)"./Gn";
       arg_G[1] = NULL;
 			arg_G[2] = NULL;
-			execvp(arg_G[0],arg_G);
+
+			retval=execvp(arg_G[0],arg_G);
+			if (retval<0){
+				perror("execvp");
+				return -1;
+			}
 		}
 	}
 
@@ -757,5 +767,5 @@ int main (int argc, char const *argv[]) {
 	// This should be done for performance optimization
 	wait(NULL);
 
-	return 0;
+	return 1;
 }

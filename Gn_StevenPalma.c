@@ -1,4 +1,4 @@
-// 2019 ARP Assignment V1.0
+// 2019 ARP Assignment V2.0
 // Steven Palma Morera - S4882385
 // 2019 - 02 - 24
 
@@ -19,8 +19,9 @@
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <sys/time.h>
-#include<sys/wait.h>
+#include <sys/wait.h>
 #include <math.h>
+
 // Port number for the socket
 //#define PORT 8086
 
@@ -34,6 +35,7 @@ struct token_with_time{
 // Main of the program
 int main(int argc, char const *argv[]){
 
+	// Variable for error handling
 	int e;
 
 	// Read values from config file
@@ -54,19 +56,9 @@ int main(int argc, char const *argv[]){
 		 return -1;
 	 }
 
-	 // Read first line (refv)
-	 if ((e=getline(&line,&len,fp))!=-1){
-			 refv=atof(line);
-	 }
-
-	 // Read second line (port2)
+	 // Read first line (port2)
 	 if ((e=getline(&line,&len,fp))!=-1){
 			 port2=atoi(line);
-	 }
-
-	 // Read third line (delay)
-	 if ((e=getline(&line,&len,fp))!=-1){
-			 ipuser=line;
 	 }
 
 	 // Closes config file
@@ -76,8 +68,8 @@ int main(int argc, char const *argv[]){
 	int fd;
 
 	// Creating nammed pipe for Pn+1
-	char *myfifo2= "/tmp/yourpipe";
-	e=mkfifo(myfifo2, S_IRUSR | S_IWUSR);
+	// char *myfifo2= "/tmp/yourpipe";
+	// e=mkfifo(myfifo2, S_IRUSR | S_IWUSR);
 	// if (e<0){
 	// 	perror("mkfifo");
 	// 	return -1;
@@ -106,7 +98,7 @@ int main(int argc, char const *argv[]){
 	address.sin_addr.s_addr = INADDR_ANY;
 	address.sin_port = htons( port2 );
 
-	// Attaching socket to the port 8084
+	// Attaching socket to the port
 	if (bind(server_fd, (struct sockaddr *)&address,sizeof(address))<0){
 		perror("bind");
 		return -1;
@@ -118,36 +110,57 @@ int main(int argc, char const *argv[]){
 		return -1;
 	}
 
+	// Creating nammed pipe
 	char *myfifo1= "/tmp/mypipe2";
-	mkfifo(myfifo1, S_IRUSR | S_IWUSR);
+	e=mkfifo(myfifo1, S_IRUSR | S_IWUSR);
+	// if (e<0){
+	// 	perror("mkfifo");
+	// 	return -1;
+	// }
 
+	// Instance of a message
 	struct token_with_time msg_to_send;
 
-
+	// Sleep before starting sending messages for the first time
 	sleep(10);
 
+	// Initializing the first message
 	msg_to_send.token=0;
-	gettimeofday( &msg_to_send.arrival_time,NULL);
+	e=gettimeofday( &msg_to_send.arrival_time,NULL);
+	if (e<0){
+		perror("gettimeofday");
+		return -1;
+	}
 
 	char phrase[100];
 	sprintf(phrase,"%f\n%ld.%06ld\n",msg_to_send.token,msg_to_send.arrival_time.tv_sec,msg_to_send.arrival_time.tv_usec);
-	//printf("Initial message:\n%s",phrase);
-	//fflush(stdout);
 
+	// File descriptor for nammed pipe
 	int fd1;
 
 	// G is constantly waiting for a new message from the socket
 	while (1){
 
-
+		// Open the nammed pipe
 		fd1 = open ( "/tmp/mypipe2", O_WRONLY);
-		write (fd1, &phrase, strlen ( phrase)+1);
-		close (fd1);
+		if (fd1<0){
+			perror("open");
+		}
+
+		// Write the message on the pipe
+		e=write (fd1, &phrase, strlen (phrase)+1);
+		if (e<0){
+			perror("write");
+		}
+
+		// Close the nammed pipe
+		e=close (fd1);
+		if (e<0){
+			perror("close");
+		}
 
 		printf("(G): I sent>\n%s",phrase);
 		fflush(stdout);
-
-
 
 		// Waits the connection of the other socket / This call blocks indefinitely
 		// Accepts request from client
@@ -224,5 +237,5 @@ int main(int argc, char const *argv[]){
 		perror("close");
 	}
 
-	return 0;
+	return 1;
 }
