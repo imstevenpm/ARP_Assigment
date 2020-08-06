@@ -302,8 +302,6 @@ int P_task(int child_PID_L, int fildes0, int fildes1){
 	 // Closes config file
 	 fclose(fp);
 
-	 sleep(10);
-
 	// P is constantly waiting for new messages from the nammed pipes
 	while (1){
 
@@ -550,7 +548,8 @@ int P_task(int child_PID_L, int fildes0, int fildes1){
 					serv_addr.sin_family = AF_INET;
 					serv_addr.sin_port = htons(port2);
 
-					// Convert IPv4 and IPv6 addresses from text to binary form ?
+					// Convert IPv4 and IPv6 addresses from text to binary form
+					// e=inet_pton(AF_INET, ipuser, &serv_addr.sin_addr);
 					e=inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr);
 					if(e<=0){
 						perror("inet_pton");
@@ -580,9 +579,8 @@ int P_task(int child_PID_L, int fildes0, int fildes1){
 
 					// Computes new token
 					// new token = received token + DT x (1. - (received token)^2/2) x 2 pi x refv
-					//Pn_token.token1=Pn_token.token1 + (Pn_token.arrival_time.tv_sec+Pn_token.arrival_time.tv_usec-Pn_token.time1)*refv;
-					Pn_token.token1=Pn_token.time1;
-
+					//Pn_token.token1=Pn_token.token1*10000000 + (Pn_token.arrival_time.tv_sec*1000000+Pn_token.arrival_time.tv_usec-Pn_token.time1*1000000)*(1-((Pn_token.token1*Pn_token.token1*1000000000000)/2))*2*M_PI*refv;
+					Pn_token.token1= ((Pn_token.token1 + (Pn_token.arrival_time.tv_sec*1000000+Pn_token.arrival_time.tv_usec-Pn_token.time1*1000000)*refv));
 
 					// Save new token and timestamp in the phrase variable with the same format as received
 					sprintf(phrase,"%f\n%ld.%06ld\n",Pn_token.token1,Pn_token.arrival_time.tv_sec,Pn_token.arrival_time.tv_usec);
@@ -673,7 +671,7 @@ int main (int argc, char const *argv[]) {
 	pid_t child_PID_P;
 	pid_t child_PID_G;
 
-	printf("(S): S process id= %d (parent PID= %d)\n", (int) getpid(), (int) getppid());
+	printf("(S): my process id= %d (parent PID= %d)\n", (int) getpid(), (int) getppid());
 	fflush(stdout);
 
 	// Fork P

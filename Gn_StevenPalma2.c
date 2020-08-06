@@ -123,18 +123,18 @@ int main(int argc, char const *argv[]){
 
 	struct token_with_time msg_to_send;
 
-	msg_to_send.token=0.1;
+
+	sleep(10);
+
+	msg_to_send.token=0;
 	gettimeofday( &msg_to_send.arrival_time,NULL);
 
 	char phrase[100];
 	sprintf(phrase,"%f\n%ld.%06ld\n",msg_to_send.token,msg_to_send.arrival_time.tv_sec,msg_to_send.arrival_time.tv_usec);
-	printf("(G): Initial message:\n%s",phrase);
-	fflush(stdout);
+	//printf("Initial message:\n%s",phrase);
+	//fflush(stdout);
 
 	int fd1;
-
-	sleep(20);
-
 
 	// G is constantly waiting for a new message from the socket
 	while (1){
@@ -144,7 +144,7 @@ int main(int argc, char const *argv[]){
 		write (fd1, &phrase, strlen ( phrase)+1);
 		close (fd1);
 
-		printf("(G): I sent:\n%s",phrase);
+		printf("(G): I sent>\n%s",phrase);
 		fflush(stdout);
 
 
@@ -170,7 +170,7 @@ int main(int argc, char const *argv[]){
 			return -1;
 		}
 
-		printf("(G): I read>\n%s\n",buffer);
+		printf("(G): I read>\n%s",buffer);
 		fflush(stdout);
 
 		// Open nammed pipe
