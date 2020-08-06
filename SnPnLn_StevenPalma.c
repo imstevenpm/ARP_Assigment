@@ -270,7 +270,7 @@ int P_task(int child_PID_L, int fildes0, int fildes1){
 
 	// Open config file
 	// Directory must be changed!
-	fp = fopen("/home/imstevenpm/EMARO_1ST_SEMESTER/ARP/ASSIGMENT/arp2/Config_StevenPalma.config", "r");
+	fp = fopen("Config_StevenPalma.config", "r");
 	if (fp==NULL){
 		 perror("open");
 		 return -1;
