@@ -27,26 +27,5 @@ or for starting/stopping Pn from receiving messages by running:
     
 To end the execution of the network the user can type CTRL+C
 
-
-## Additional Observations
-For Pn (1), the requirement is marked as yellow because the application of the network defined in [1] and [2] of computing the token as a sinusoidal wave wasn't accomplished because the formula didn't work properly. However; using the new formula proposed by the designer, the system works fine.
-
-For Gn (1), the network was designed originally for the requirements of [1] so It isn't well optimized for [2]. This results in Gn sometimes not communicating properly with Pn, however a simply restart of the network solves it.
-
-For Sn (2), the signals can be sent and the processes will do what required; however, after a console signal was sent, the communication cycle stops since Pn listens first in the select to messages coming from Sn. This causes that, after a console message is sent, Pn doesn't receive anymore messages from Gn since Gn is still waiting for the reply from the socket that Pn should have sent when Gn sent the message, but Pn won't do it because it listened to the named pipe from Sn and not the one from Gn. Since Gn is waiting the reply, It won't send any message and Pn won't receive any neither. This didn't happen when the network was used for the application described in [1] since Gn and Gn-1 were different and independent. 
-In order to solve this, each time a console signal is sent and the communication cycle is wanted to be restarted again, then the user first must kill the current Gn process running:
-```kill -9 <Gn PID>```
-
-And then execute a new Gn process by running:
-```./Gn```
-    
-For Config file (1), the parameters are well read and used in the network; however, the IP address wasn't used since there wasn't any other additional machine to be tested on. This means that even if the network should work between different machines, It wasn't tested. Also, the designer noticed that the network is sensitive to the time delay for the Pn process specified in the Config file. This value should be well tuned accordingly to the timeouts of the selects used and the initial delays of the network. This didn't happen when the network was tested for [1], since this time delay was an add-on from [2].
-
-Regarding the files created after the bash file and the processes are executed, it is advisable for the user to delete all the files generated each time a new network is about to be started (Log file, executables and pipes). Since for example, the Log file is never emptied, so It might have values from past experiments. This was done like this because no requirement was given about what to do with the log file when the network finishes.
-
-Regarding the messages displayed in the shell when the network is running, sometimes the messages get overlapped. This happens because each process is executing simultaneously so It is expected that their print functions to get overlapped in the shell. However; this is something that only happens in the shell and It doesn't happen in the Log file where the event are registered without overlapping.
-
-For more details, please read the report.
-
 ## Authors
 * Steven Palma Morera: imstevenpm.study@gmail.com
