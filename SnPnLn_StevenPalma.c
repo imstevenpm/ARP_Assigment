@@ -368,8 +368,10 @@ int P_task(int child_PID_L, int fildes0, int fildes1){
 				//read from both
 			//}
 
-			// If the data comes from the nammed pipe "mypipe"
-			if (FD_ISSET(fd1, &rfds)){
+			//if ((FD_ISSET(fd1, &rfds))||(FD_ISSET(fd2, &rfds))){
+
+				// If the data comes from the nammed pipe "mypipe"
+				if (FD_ISSET(fd1, &rfds)){
 
 				// Read the data
 				e=read (fd1, &messageint, sizeof(messageint));
@@ -469,8 +471,8 @@ int P_task(int child_PID_L, int fildes0, int fildes1){
 				}
 			}
 
-			// If the data comes from the nammed pipe "mypipe2"
-			else if (FD_ISSET(fd2, &rfds)){
+				// If the data comes from the nammed pipe "mypipe2"
+				else if (FD_ISSET(fd2, &rfds)){
 
 				// If receiving, computing and sending on
 				if (onoff==1){
@@ -640,6 +642,7 @@ int P_task(int child_PID_L, int fildes0, int fildes1){
 					}
 				}
 			}
+			//}
 
 			// If the data comes neither from mypipe1 nor mypipe2
 			// Something strange happened
