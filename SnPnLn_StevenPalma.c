@@ -25,7 +25,7 @@
 #include <arpa/inet.h>
 
 // Port number for the socket
-//#define PORT 8084
+//#define PORT 8086
 
 #define _GNU_SOURCE
 
@@ -58,7 +58,8 @@ void sig_handler_sigusr1(int signo) {
 	// Notifies that a Start/Stop signal has arrived
 	int e;
 	int fdaux;
-	fdaux = open ( "/tmp/mypipe", O_WRONLY);
+	//fdaux = open ( "/tmp/mypipe", O_WRONLY);
+	fdaux = open ( "mypipe", O_WRONLY);
 	if (fdaux<0){
 		perror("open");
 	}
@@ -83,7 +84,8 @@ void sig_handler_sigusr2(int signo) {
 	int log=2;
 	int fdaux2;
 	int e;
-	fdaux2= open("/tmp/mypipe", O_WRONLY);
+	//fdaux2= open("/tmp/mypipe", O_WRONLY);
+	fdaux2= open("mypipe", O_WRONLY);
 	if (fdaux2<0){
 		perror("open");
 	}
@@ -229,8 +231,12 @@ int P_task(int child_PID_L, int fildes0, int fildes1){
 	int onoff=1;
 
 	// Creating nammed pipes
-	char *myfifo= "/tmp/mypipe";
-	char *myfifo2= "/tmp/mypipe2";
+	//char *myfifo= "/tmp/mypipe";
+	//char *myfifo2= "/tmp/mypipe2";
+
+	char *myfifo= "mypipe";
+	char *myfifo2= "mypipe2";
+
 	e=mkfifo( myfifo , S_IRUSR | S_IWUSR);
 	// if (e<0){
 	// 	perror("mkfifo");
@@ -300,18 +306,21 @@ int P_task(int child_PID_L, int fildes0, int fildes1){
 	 }
 
 	 // Closes config file
+
 	 fclose(fp);
 
 	// P is constantly waiting for new messages from the nammed pipes
 	while (1){
 
 		// Open nammed pipes in non blocking mode
-		fd1 = open ( "/tmp/mypipe", O_RDONLY | O_NONBLOCK);
+		//fd1 = open ( "/tmp/mypipe", O_RDONLY | O_NONBLOCK);
+		fd1 = open ( "mypipe", O_RDONLY | O_NONBLOCK);
 		if (fd1<0){
 			perror("open");
 			return -1;
 		}
-		fd2 = open ( "/tmp/mypipe2", O_RDONLY | O_NONBLOCK);
+		//fd2 = open ( "/tmp/mypipe2", O_RDONLY | O_NONBLOCK);
+		fd2 = open ( "mypipe2", O_RDONLY | O_NONBLOCK);
 		if (fd2<0){
 			perror("open");
 			return -1;
@@ -362,16 +371,11 @@ int P_task(int child_PID_L, int fildes0, int fildes1){
 		}
 
 		// If there is new data available in either of the pipes
-		else{
+		else {
 
-			//if ((FD_ISSET(fd1, &rfds)&&(FD_ISSET(fd2, &rfds))){
-				//read from both
-			//}
-
-			//if ((FD_ISSET(fd1, &rfds))||(FD_ISSET(fd2, &rfds))){
-
-				// If the data comes from the nammed pipe "mypipe"
-				if (FD_ISSET(fd1, &rfds)){
+			// If the data comes from the nammed pipe "mypipe"
+			// "mypipe" has priority over "mypipe2"
+			if (FD_ISSET(fd1, &rfds)){
 
 				// Read the data
 				e=read (fd1, &messageint, sizeof(messageint));
@@ -471,8 +475,8 @@ int P_task(int child_PID_L, int fildes0, int fildes1){
 				}
 			}
 
-				// If the data comes from the nammed pipe "mypipe2"
-				else if (FD_ISSET(fd2, &rfds)){
+			// If the data comes from the nammed pipe "mypipe2"
+			else if (FD_ISSET(fd2, &rfds)){
 
 				// If receiving, computing and sending on
 				if (onoff==1){
@@ -540,38 +544,39 @@ int P_task(int child_PID_L, int fildes0, int fildes1){
 
 					// Once that Pn has received a new token, it must compute the new one and send it through the socket
 
+
 					// Creating socket file descriptor
-					if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0){
+			 	 	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0){
 						perror("socket");
 						return -1;
 					}
 
-					// Set address of the socket
-					serv_addr.sin_family = AF_INET;
-					serv_addr.sin_port = htons(port2);
+			 	 	// Set address of the socket
+			 	 	serv_addr.sin_family = AF_INET;
+					serv_addr.sin_addr.s_addr = INADDR_ANY;
+			 	 	serv_addr.sin_port = htons(port2);
 
-					// Convert IPv4 and IPv6 addresses from text to binary form
-					// This can be configured for another ip cpu
-					// e=inet_pton(AF_INET, ipuser, &serv_addr.sin_addr);
-					e=inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr);
-					if(e<=0){
+			 	 	// Convert IPv4 and IPv6 addresses from text to binary form
+			 	 	// This can be configured for another ip cpu
+			 	 	// e=inet_pton(AF_INET, ipuser, &serv_addr.sin_addr);
+			 	 	e=inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr);
+			 	 	if(e<=0){
 						perror("inet_pton");
 						return -1;
 					}
 
-					// Waits the connection of the other socket
-					if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0){
+				 	// Waits delay
+				 	printf("(P): Waiting the delay\n");
+				 	fflush(stdout);
+				 	usleep(usecs);
+
+				 	// Waits the connection of the other socket
+				 	if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0){
 						perror("connect");
 						return -1;
 					}
 
 					// Once they are connected
-
-					// Waits delay
-					printf("(P): Waiting the delay\n");
-					fflush(stdout);
-					usleep(usecs);
-
 					// Take current time
 					e=gettimeofday( &Pn_token.arrival_time,NULL);
 					if (e<0){
@@ -642,7 +647,6 @@ int P_task(int child_PID_L, int fildes0, int fildes1){
 					}
 				}
 			}
-			//}
 
 			// If the data comes neither from mypipe1 nor mypipe2
 			// Something strange happened
@@ -661,8 +665,11 @@ int P_task(int child_PID_L, int fildes0, int fildes1){
 					return -1;
 				}
 			}
+
 		}
+
 	}
+
 	return 1;
 }
 
@@ -766,9 +773,11 @@ int main (int argc, char const *argv[]) {
 	}
 
 	// Only Sn process arrives here, since Pn and Ln are in an while(1) loop
-	// Sn stays in standby waiting for a child to end or for a signal to arrive
+	// Sn stays in standby waiting for Pn to end or for a signal to arrive
 	// This should be done for performance optimization
-	wait(NULL);
+	//wait(NULL);
+	int status=1;
+	waitpid(child_PID_P,&status,0);
 
 	return 1;
 }

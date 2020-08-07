@@ -46,19 +46,19 @@ int main(int argc, char const *argv[]){
 
 	// Variables read
 	const char *ipuser= NULL;
-	int port2 = 0;
+	int port20 = 0;
 	float refv = 0;
 
 	// Open config file
 	fp = fopen("/home/imstevenpm/EMARO_1ST_SEMESTER/ARP/ASSIGMENT/arp2/Config_StevenPalma.config", "r");
 	if (fp==NULL){
-		 perror("open");
+		 perror("fopen");
 		 return -1;
 	 }
 
 	 // Read first line (port2)
-	 if ((e=getline(&line,&len,fp))!=-1){
-			 port2=atoi(line);
+	 if ((e = getline(&line,&len,fp))!=-1){
+			 port20 =atoi(line);
 	 }
 
 	 // Closes config file
@@ -96,23 +96,17 @@ int main(int argc, char const *argv[]){
 	// Set address of socket
 	address.sin_family = AF_INET;
 	address.sin_addr.s_addr = INADDR_ANY;
-	address.sin_port = htons( port2 );
+	address.sin_port = htons(port20);
 
 	// Attaching socket to the port
-	if (bind(server_fd, (struct sockaddr *)&address,sizeof(address))<0){
+	if (bind(server_fd, (struct sockaddr *)&address, sizeof(address))<0){
 		perror("bind");
 		return -1;
 	}
 
-	// Listen to the socket
-	if (listen(server_fd, 3) < 0){
-		perror("listen");
-		return -1;
-	}
-
 	// Creating nammed pipe
-	char *myfifo1= "/tmp/mypipe2";
-	e=mkfifo(myfifo1, S_IRUSR | S_IWUSR);
+	// char *myfifo1= "/tmp/mypipe2";
+	// e=mkfifo(myfifo1, S_IRUSR | S_IWUSR);
 	// if (e<0){
 	// 	perror("mkfifo");
 	// 	return -1;
@@ -136,25 +130,26 @@ int main(int argc, char const *argv[]){
 	sprintf(phrase,"%f\n%ld.%06ld\n",msg_to_send.token,msg_to_send.arrival_time.tv_sec,msg_to_send.arrival_time.tv_usec);
 
 	// File descriptor for nammed pipe
-	int fd1;
+	int fd10;
 
 	// G is constantly waiting for a new message from the socket
 	while (1){
 
 		// Open the nammed pipe
-		fd1 = open ( "/tmp/mypipe2", O_WRONLY);
-		if (fd1<0){
+		//fd1 = open ( "/tmp/mypipe2", O_WRONLY);
+		fd10 = open ("mypipe2", O_WRONLY);
+		if (fd10<0){
 			perror("open");
 		}
 
 		// Write the message on the pipe
-		e=write (fd1, &phrase, strlen (phrase)+1);
+		e=write (fd10, &phrase, strlen (phrase)+1);
 		if (e<0){
 			perror("write");
 		}
 
 		// Close the nammed pipe
-		e=close (fd1);
+		e=close (fd10);
 		if (e<0){
 			perror("close");
 		}
@@ -167,6 +162,12 @@ int main(int argc, char const *argv[]){
 
 		printf("(G): Waiting for a reply\n");
 		fflush(stdout);
+
+		// Listen to the socket
+		if (listen(server_fd, 3) < 0){
+			perror("listen");
+			return -1;
+		}
 
 		if ((new_socket = accept(server_fd, (struct sockaddr *)&address,(socklen_t*)&addrlen))<0){
 			perror("accept");
