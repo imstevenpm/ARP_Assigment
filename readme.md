@@ -8,17 +8,20 @@ Open a new terminal in a chose directory and clone the repository given in [3] b
 ```git clone https://github.com/imstevenpm/ARP_Assigment.git```
     
 In the same shell, execute the bash script by running:
-```./Bash_StevenPalma.bash\end```
+```./Bash_StevenPalma.bash```
+
 A new terminal will show up and the SnPnLn and Gn executables will be created in the current directory.
     
 Before continuing, the user can set the parameters from the Config_StevenPalma.config file to a different ones. In the new terminal, execute the SnPnLn executable by running:
-```./SnPnLn``` 
+```./SnPnLn```
+
 The network should initialize by showing on shell the PID of each Posix process created. Also, a time delay of 10 seconds is waited before Gn sends the first message to Pn and the communication cycle starts.
     
 After the 10 seconds, messages from all the Posix processes will appear in the shell indicating their current status. The network is up and running. Notice that the Log_StevenPalma.log file is created as well as the FIFO files for the nammed pipes in the current directory of the user's machine.
     
 From here, -in a different shell- the user can send the console signals to Sn for displaying the Log_StevenPalma.log content by running:
 ```kill -SIGUSR2 <Sn PID>```
+
 or for starting/stopping Pn from receiving messages by running:
 ```kill -SIGUSR1 <Sn PID>```
     
@@ -33,6 +36,7 @@ For Gn (1), the network was designed originally for the requirements of [1] so I
 For Sn (2), the signals can be sent and the processes will do what required; however, after a console signal was sent, the communication cycle stops since Pn listens first in the select to messages coming from Sn. This causes that, after a console message is sent, Pn doesn't receive anymore messages from Gn since Gn is still waiting for the reply from the socket that Pn should have sent when Gn sent the message, but Pn won't do it because it listened to the named pipe from Sn and not the one from Gn. Since Gn is waiting the reply, It won't send any message and Pn won't receive any neither. This didn't happen when the network was used for the application described in [1] since Gn and Gn-1 were different and independent. 
 In order to solve this, each time a console signal is sent and the communication cycle is wanted to be restarted again, then the user first must kill the current Gn process running:
 ```kill -9 <Gn PID>```
+
 And then execute a new Gn process by running:
 ```./Gn```
     
