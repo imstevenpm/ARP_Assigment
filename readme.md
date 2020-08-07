@@ -1,4 +1,4 @@
-#Instructions for use
+# Instructions for use
 
 The following instructions were tested using Ubuntu Focal Fossa 20.04.1 LTS on August 6th, 2020. For a more recent guide, check the Readme.md file from the repository online.
 
@@ -24,7 +24,7 @@ The following instructions were tested using Ubuntu Focal Fossa 20.04.1 LTS on A
     7. To end the execution of the network the user can type CTRL+C
 
 
-#Additional Observations
+# Additional Observations
     - For Pn (1), the requirement is marked as yellow because the application of the network defined in \cite{b1} and \cite{b2} of computing the token as a sinusoidal wave wasn't accomplished because the formula didn't work properly. However; using the new formula proposed by the designer, the system works fine.
     - For Gn (1), the network was designed originally for the requirements of \cite{b1} so It isn't well optimized for \cite{b2}. This results in Gn sometimes not communicating properly with Pn, however a simply restart of the network solves it.
     - For Sn (2), the signals can be sent and the processes will do what required; however, after a console signal was sent, the communication cycle stops since Pn listens first in the select to messages coming from Sn. This causes that, after a console message is sent, Pn doesn't receive anymore messages from Gn since Gn is still waiting for the reply from the socket that Pn should have sent when Gn sent the message, but Pn won't do it because it listened to the named pipe from Sn and not the one from Gn. Since Gn is waiting the reply, It won't send any message and Pn won't receive any neither. This didn't happen when the network was used for the application described in \cite{b1} since Gn and Gn-1 were different and independent. 
