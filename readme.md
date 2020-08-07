@@ -3,19 +3,25 @@
 The following instructions were tested using Ubuntu Focal Fossa 20.04.1 LTS on August 6th, 2020.
 
     1. Open a new terminal in a chose directory and clone the repository given in \cite{b3} by running:
-    `git clone https://github.com/imstevenpm/ARP_Assigment.git`
+    ```git clone https://github.com/imstevenpm/ARP_Assigment.git```
+    
     2. In the same shell, execute the bash script by running:
     `./Bash_StevenPalma.bash\end` 
     A new terminal will show up and the SnPnLn and Gn executables will be created in the current directory.
+    
     3. Before continuing, the user can set the parameters from the Config\_StevenPalma.config file to a different ones. In the new terminal, execute the SnPnLn executable by running:
     `./SnPnLn` 
     The network should initialize by showing on shell the PID of each Posix process created. Also, a time delay of 10 seconds is waited before Gn sends the first message to Pn and the communication cycle starts.
+    
     4. After the 10 seconds, messages from all the Posix processes will appear in the shell indicating their current status. The network is up and running.
+    
     5. Notice that the Log\_StevenPalma.log file is created as well as the FIFO files for the nammed pipes in the current directory of the user's machine.
+    
     6. From here, -in a different shell- the user can send the console signals to Sn for displaying the Log\_StevenPalma.log content by running:
     'kill -SIGUSR2 <Sn PID>'
     or for starting/stopping Pn from receiving messages by running:
     'kill -SIGUSR1 <Sn PID>'
+    
     7. To end the execution of the network the user can type CTRL+C
 
 
