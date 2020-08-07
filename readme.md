@@ -8,7 +8,7 @@ Open a new terminal in a chose directory and clone the repository given in [3] b
 ```git clone https://github.com/imstevenpm/ARP_Assigment.git```
     
 In the same shell, execute the bash script by running:
-```./Bash_StevenPalma.bash```
+```./Bash_StevenPalma.sh```
 
 A new terminal will show up and the SnPnLn and Gn executables will be created in the current directory.
     
